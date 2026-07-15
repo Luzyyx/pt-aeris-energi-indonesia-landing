@@ -1,8 +1,6 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { motion } from 'framer-motion';
-import SocialCards from './components/SocialCards';
-import { SplineScene } from './components/SplineScene';
+import ProductGridCarousel from './components/ProductGridCarousel';
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -27,11 +25,9 @@ const navItems = [
   { label: 'Produk', href: '#produk' },
   { label: 'Proyek', href: '#proyek' },
   { label: 'Nilai', href: '#nilai' },
-  { label: 'Legalitas', href: '#legalitas' },
+  { label: 'Tentang', href: '#tentang' },
   { label: 'Kontak', href: '#kontak' },
 ];
-
-const HERO_SPLINE_SCENE = import.meta.env.VITE_SPLINE_SCENE_URL || '';
 
 const services = [
   {
@@ -101,55 +97,42 @@ const projectShots = [
 
 const productCards = [
   {
-    imgUrl: '/assets/products-preview.webp',
-    label: 'Produk utama',
-    title: 'PLTS Pintar',
-    text: 'Sistem off-grid, on-grid, dan hybrid untuk rumah, kantor, sekolah, tempat ibadah, hingga kawasan wisata.',
+    imgUrl: '/assets/product-rooftop.webp',
+    label: 'PLTS',
+    title: 'Panel surya rooftop',
+    text: 'Solusi panel surya untuk rumah, kantor, sekolah, fasilitas publik, dan kebutuhan industri.',
   },
   {
-    imgUrl: '/assets/plts-rooftop.webp',
-    label: 'Solar rooftop',
-    title: 'Panel surya atap',
-    text: 'Instalasi panel surya untuk kebutuhan residensial, komersial, dan industri.',
+    imgUrl: '/assets/product-pjut.webp',
+    label: 'PJUTS',
+    title: 'Lampu jalan tenaga surya',
+    text: 'Penerangan mandiri untuk jalan desa, kawasan industri, dan ruang publik.',
   },
   {
-    imgUrl: '/assets/pju-pole-installation.webp',
-    label: 'Penerangan',
-    title: 'PJUTS',
-    text: 'Lampu jalan tenaga surya untuk desa, kawasan industri, dan fasilitas umum.',
+    imgUrl: '/assets/product-pump.webp',
+    label: 'Pompa air',
+    title: 'Pompa air tenaga surya',
+    text: 'Sistem pompa untuk pertanian, peternakan, perikanan, dan akses air di lokasi terpencil.',
   },
   {
-    imgUrl: '/assets/pju-team-installation.webp',
-    label: 'Lapangan',
-    title: 'Tim instalasi',
-    text: 'Proses pemasangan di lokasi proyek dengan dokumentasi nyata dari company profile.',
+    imgUrl: '/assets/product-inverter.webp',
+    label: 'Penyimpanan',
+    title: 'Inverter & baterai',
+    text: 'Pengaturan daya dan penyimpanan energi agar sistem lebih siap dipakai setiap hari.',
   },
   {
-    imgUrl: '/assets/night-pju-light.webp',
-    label: 'Output',
-    title: 'PJU aktif malam',
-    text: 'Visual hasil penerangan jalan umum tenaga surya setelah instalasi.',
+    imgUrl: '/assets/solar-farm.webp',
+    label: 'Skala besar',
+    title: 'Solar farm & ground mount',
+    text: 'Perencanaan dan instalasi array panel surya untuk kebutuhan energi yang lebih besar.',
   },
   {
-    imgUrl: '/assets/green-infrastructure.webp',
-    label: 'Infrastruktur',
-    title: 'Solusi energi hijau',
-    text: 'Dukungan ekosistem energi bersih dan implementasi fasilitas pendukung.',
-  },
-  {
-    imgUrl: '/assets/portfolio-preview.webp',
-    label: 'Dokumentasi',
-    title: 'Portofolio proyek',
-    text: 'Ringkasan proyek PT Aeris Energi Indonesia dalam format visual yang lebih premium.',
+    imgUrl: '/assets/green-city.webp',
+    label: 'Go green',
+    title: 'Infrastruktur hijau',
+    text: 'Pendampingan solusi energi bersih untuk operasional yang lebih hemat dan berkelanjutan.',
   },
 ];
-
-const portfolioCards = projectShots.map((item) => ({
-  imgUrl: item.src,
-  label: 'Portofolio',
-  title: item.title,
-  text: item.text,
-}));
 
 const values = [
   {
@@ -300,7 +283,7 @@ function SolarArray() {
 
   const panels = useMemo(() => {
     const items = [];
-    for (let row = 0; row < 3; row += 1) {
+    for (let row = 0; row < 2; row += 1) {
       for (let col = 0; col < 4; col += 1) {
         items.push({
           key: `${row}-${col}`,
@@ -316,7 +299,7 @@ function SolarArray() {
 
   const stars = useMemo(() => {
     const items = [];
-    for (let i = 0; i < 120; i += 1) {
+    for (let i = 0; i < 54; i += 1) {
       items.push([
         (Math.random() - 0.5) * 28,
         (Math.random() - 0.3) * 14,
@@ -413,7 +396,7 @@ function SolarArray() {
 
 function Scene() {
   return (
-    <Canvas dpr={[1, 1.75]} camera={{ position: [0, 1.3, 11], fov: 38 }}>
+    <Canvas dpr={[1, 1.35]} camera={{ position: [0, 1.3, 11], fov: 38 }}>
       <SolarArray />
     </Canvas>
   );
@@ -421,26 +404,41 @@ function Scene() {
 
 function HeroSceneLayer() {
   return (
-    <div className={`hero-scene ${HERO_SPLINE_SCENE ? 'spline-active' : 'three-active'}`}>
-      {HERO_SPLINE_SCENE ? (
-        <SplineScene scene={HERO_SPLINE_SCENE} className="spline-canvas" />
-      ) : (
-        <Scene />
-      )}
+    <div className="hero-scene three-active">
+      <Scene />
     </div>
   );
 }
 
 function Reveal({ children, className = '', delay = 0 }) {
+  const elementRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element) return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setIsVisible(true);
+        observer.unobserve(entry.target);
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -5% 0px' },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.75, delay, ease: [0.22, 1, 0.36, 1] }}
+    <div
+      ref={elementRef}
+      className={`reveal ${isVisible ? 'is-visible' : ''} ${className}`}
+      style={{ '--reveal-delay': `${delay}s` }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -485,26 +483,26 @@ function App() {
         <div className="hero-content container">
           <div className="hero-copy">
             <Reveal>
-              <p className="eyebrow hero-eyebrow">Company profile resmi PT Aeris Energi Indonesia</p>
+              <p className="eyebrow hero-eyebrow">Solusi energi terbarukan untuk kebutuhan nyata</p>
             </Reveal>
             <Reveal delay={0.05}>
               <h1>
-                Bangun energi bersih
-                <span>yang tampil serius sejak layar pertama.</span>
+                Solusi tenaga surya
+                <span>untuk efisiensi hari ini.</span>
               </h1>
             </Reveal>
             <Reveal delay={0.1}>
               <p className="hero-text">
-                Solusi PLTS, PJUTS, pompa air tenaga surya, insinerator ramah lingkungan, dan
-                konsultasi energi untuk industri, komersial, maupun pemerintahan.
+                Pilih produk, jasa, dan dukungan teknis untuk menghadirkan energi surya yang lebih
+                hemat, mandiri, dan berdampak baik untuk lingkungan.
               </p>
             </Reveal>
 
             <Reveal delay={0.15}>
               <div className="hero-actions">
-                <a className="button primary" href="#proyek">
+                <a className="button primary" href="#produk">
                   <ArrowUpRight size={16} />
-                  Lihat proyek
+                  Lihat produk
                 </a>
               </div>
             </Reveal>
@@ -524,19 +522,19 @@ function App() {
           <Reveal className="hero-visual" delay={0.1}>
             <div className="visual-stack">
               <div className="visual-card main">
-                <img src="/assets/company-profile-cover.webp" alt="Cover company profile PT Aeris Energi Indonesia" />
+                <img src="/assets/product-rooftop.webp" alt="Panel surya rooftop untuk kebutuhan energi bersih" />
               </div>
               <div className="visual-card floating one">
                 <BadgeCheck size={18} />
-                <span>ESG-minded infrastructure</span>
+                <span>Infrastruktur berorientasi ESG</span>
               </div>
               <div className="visual-card floating two">
                 <Sparkles size={18} />
-                <span>Field-ready solar deployment</span>
+                <span>Instalasi siap lapangan</span>
               </div>
               <div className="visual-card floating three">
                 <ShieldCheck size={18} />
-                <span>Industrial and public sector focus</span>
+                <span>Industri dan sektor publik</span>
               </div>
             </div>
           </Reveal>
@@ -557,8 +555,8 @@ function App() {
         <section className="section container" id="layanan">
           <SectionHeading
             eyebrow="Layanan utama"
-            title="Satu perusahaan, banyak titik eksekusi."
-            text="Konten berikut diambil dari company profile, lalu disusun ulang menjadi landing page yang mudah dibaca, tidak kaku, dan tetap cocok untuk perusahaan energi."
+            title="Satu mitra untuk seluruh kebutuhan energi."
+            text="Layanan mencakup survei, perhitungan kebutuhan, instalasi, pengujian, dan pemeliharaan sistem energi terbarukan."
           />
           <div className="service-grid">
             {services.map((service, index) => {
@@ -581,37 +579,37 @@ function App() {
         <section className="section container product-showcase" id="produk">
           <SectionHeading
             eyebrow="Produk & solusi"
-            title="Visual produk dibuat seperti kartu premium yang hidup."
-            text="Bagian ini memakai gaya fan-card dari snippet yang kamu kasih. Cocok untuk menampilkan produk, layanan, dan dokumentasi lapangan tanpa terasa seperti katalog biasa."
+            title="Pilihan teknologi untuk berbagai kebutuhan."
+            text="Setiap solusi dapat disesuaikan dengan lokasi, kapasitas, kebutuhan operasional, dan target efisiensi energi."
           />
-          <SocialCards cards={productCards} className="product-fan" />
+          <ProductGridCarousel cards={productCards} />
         </section>
 
         <section className="section band">
           <div className="container band-inner">
             <Reveal>
               <div className="band-copy">
-                <p className="eyebrow">Kenapa tampilannya dibuat seperti ini</p>
-                <h2>Referensi videonya punya rasa premium, gelap, dan teknis. Itu saya bawa ke sini.</h2>
+                <p className="eyebrow">Solusi menyeluruh</p>
+                <h2>Dari perencanaan hingga sistem beroperasi.</h2>
                 <p>
-                  Jadi bukan sekadar web company profile biasa. Ada 3D scene, glow halus, motion
-                  saat scroll, dan susunan section yang lebih dekat ke pengalaman produk modern.
+                  Tim Aeris membantu menentukan solusi yang tepat, menyiapkan instalasi, melakukan
+                  pengujian, dan mendukung sistem setelah digunakan.
                 </p>
               </div>
             </Reveal>
             <Reveal delay={0.1}>
               <div className="band-metrics">
                 <div>
-                  <strong>3D</strong>
-                  <span>scene real-time di hero</span>
+                  <strong>Survei</strong>
+                  <span>analisis kebutuhan dan kondisi lokasi</span>
                 </div>
                 <div>
-                  <strong>Motion</strong>
-                  <span>section muncul dengan animasi</span>
+                  <strong>Instalasi</strong>
+                  <span>pemasangan dan pengujian sistem</span>
                 </div>
                 <div>
-                  <strong>Visual</strong>
-                  <span>aset asli dari company profile</span>
+                  <strong>Dukungan</strong>
+                  <span>pemeliharaan dan bantuan teknis</span>
                 </div>
               </div>
             </Reveal>
@@ -622,16 +620,32 @@ function App() {
           <SectionHeading
             eyebrow="Portofolio proyek"
             title="Bukti lapangan, bukan sekadar janji."
-            text="Aset yang dipakai diambil dari dokumen company profile sehingga landing page tetap terasa otentik."
+            text="Pengalaman Aeris mencakup PLTS rooftop, penerangan jalan tenaga surya, pompa air, dan infrastruktur hijau di berbagai lokasi."
           />
-          <SocialCards cards={portfolioCards} className="portfolio-fan" />
+          <div className="gallery-grid">
+            {projectShots.map((item, index) => (
+              <Reveal
+                key={item.title}
+                delay={index * 0.05}
+                className={`gallery-item ${index === 0 ? 'span-wide' : index === 1 ? 'span-tall' : 'span-normal'}`}
+              >
+                <figure className="gallery-card">
+                  <img src={item.src} loading="lazy" alt={item.title} />
+                  <figcaption>
+                    <strong>{item.title}</strong>
+                    <span>{item.text}</span>
+                  </figcaption>
+                </figure>
+              </Reveal>
+            ))}
+          </div>
         </section>
 
         <section className="section container" id="nilai">
           <SectionHeading
             eyebrow="Nilai perusahaan"
             title="AERIS sebagai fondasi."
-            text="Nilai-nilai ini diringkas dari company profile dan disusun agar terlihat lebih tegas di landing page."
+            text="Accountable, Excellent, Reliable, Innovative, dan Sustainable menjadi dasar dalam setiap pekerjaan Aeris."
           />
           <div className="value-grid">
             {values.map((value, index) => (
@@ -648,32 +662,32 @@ function App() {
           </div>
         </section>
 
-        <section className="section container feature-split" id="legalitas">
+        <section className="section container feature-split" id="tentang">
           <Reveal>
             <div className="feature-media">
-              <img src="/assets/company-profile-cover.webp" alt="Identitas PT Aeris Energi Indonesia" />
+              <img src="/assets/green-infrastructure.webp" alt="Infrastruktur hijau dan pekerjaan energi terbarukan" />
             </div>
           </Reveal>
           <Reveal delay={0.08}>
             <div className="feature-copy">
-              <p className="eyebrow">Legalitas</p>
-              <h2>Dokumen resmi tetap ditaruh, tapi dibuat rapi dan singkat.</h2>
+              <p className="eyebrow">Tentang & portofolio</p>
+              <h2>Pengalaman lapangan yang bisa dibawa ke proyek berikutnya.</h2>
               <p>
-                Landing page ini tidak menumpuk semua isi dokumen. Informasi penting ditonjolkan
-                dalam bentuk ringkasan visual agar mudah dipahami calon klien.
+                Aeris mengerjakan solusi energi surya, penerangan publik, pompa air, dan
+                infrastruktur hijau untuk kebutuhan industri, komersial, maupun pemerintahan.
               </p>
               <ul className="checklist">
                 <li>
                   <BadgeCheck size={16} />
-                  Badan usaha dan sektor energi terbarukan teridentifikasi jelas
+                  Survei dan perhitungan kebutuhan di lokasi
                 </li>
                 <li>
                   <BadgeCheck size={16} />
-                  Dokumen pendukung dapat ditunjukkan kepada calon mitra saat dibutuhkan
+                  Instalasi, pengujian, dan serah terima sistem
                 </li>
                 <li>
                   <BadgeCheck size={16} />
-                  Informasi sensitif tidak ditampilkan di halaman publik
+                  Perawatan dan dukungan setelah proyek berjalan
                 </li>
               </ul>
             </div>
@@ -684,10 +698,10 @@ function App() {
           <Reveal>
             <div className="feature-copy">
               <p className="eyebrow">Kontak</p>
-              <h2>Siap dipakai sebagai titik masuk calon klien.</h2>
+              <h2>Diskusikan kebutuhan energi Anda bersama tim Aeris.</h2>
               <p>
-                Untuk sementara, fokusnya landing page saja. Admin panel dipisah dan menunggu
-                persetujuan terpisah.
+                Sampaikan lokasi, jenis kebutuhan, dan target penggunaan. Tim kami akan membantu
+                menyiapkan solusi yang sesuai.
               </p>
               <div className="contact-list">
                 <a href="https://wa.me/6281218000028" target="_blank" rel="noreferrer">
@@ -709,8 +723,8 @@ function App() {
             <div className="contact-panel">
               <div className="contact-card">
                 <p>PT Aeris Energi Indonesia</p>
-                <strong>Solusi energi terbarukan yang siap dijual dengan tampilan premium.</strong>
-                <span>Ringkasan layanan dan portofolio tersedia untuk presentasi dan follow-up.</span>
+                <strong>Solusi energi terbarukan untuk kebutuhan industri, komersial, dan pemerintahan.</strong>
+                <span>Hubungi tim kami untuk konsultasi produk, survei lokasi, dan rencana pekerjaan.</span>
               </div>
               <div className="contact-card compact">
                 <div>
