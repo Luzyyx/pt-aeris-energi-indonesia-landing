@@ -1,0 +1,14 @@
+node_modules/
+dist/
+tmp/
+.env
+.env.*
+!.env.example
+
+# Dokumen internal/company profile tidak ikut repository maupun deploy publik.
+public/company-profile-pt-aei.pdf
+public/assets/legalitas-preview.webp
+
+# Local/editor files
+.DS_Store
+.vscode/
