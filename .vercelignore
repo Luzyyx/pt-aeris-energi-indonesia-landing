@@ -1,0 +1,10 @@
+node_modules/
+dist/
+tmp/
+.env
+.env.*
+.vercel/
+
+# Dokumen internal tidak boleh masuk deployment publik.
+public/company-profile-pt-aei.pdf
+public/assets/legalitas-preview.webp
